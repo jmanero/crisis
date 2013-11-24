@@ -1,0 +1,23 @@
+{
+  "name": "identity-service",
+  "version": "0.1.0",
+  "description": "A universal AAA service for web and API services",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jmanero/identity_service.git"
+  },
+  "keywords": [
+    "AAA",
+    "Identity",
+    "OpenID"
+  ],
+  "author": "John Manero <jmanero@dyn.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jmanero/identity_service/issues"
+  }
+}
