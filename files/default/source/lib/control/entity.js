@@ -3,43 +3,58 @@
  * 
  * Resource accessors for the internal model
  */
-var Tenant = require("../model/tenant");
+var Hoek = require("hoek");
+var Path = require("path");
+
 var Model = {
-    group : require("../model/group"),
+    tenant : require("../model/tenant"),
     permission : require("../model/permission"),
-    user : require("../model/user")
+    subject : require("../model/subject"),
+    key : require("../model/key")
 };
 
 exports.route = function(service) {
-    // Tenant
-    service.post("/tenant", function(req, res, next) {
+    Object.keys(Model).forEach(function(name) {
+        service.post("/" + name, function(req, res, next) {
+            (new Model[name](req.body)).save(function(err) {
+                if (err)
+                    return next(err);
 
-    });
-    service.get("/tenant/:tenant", function(req, res, next) {
-
-    });
-    service.put("/tenant/:tenant", function(req, res, next) {
-
-    });
-    service.del("/tenant/:tenant", function(req, res, next) {
-
-    });
-
-    // Sub-Entities
-    Object.keys(Model).forEach(function(entity) {
-        service.post("/tenant/:tenant/" + entity, function(req, res, next) {
-
+                res.link("self", Path.join("/", name, this._id));
+                res.send(201);
+            });
         });
-        
-        var path = "/tenant/:tenant/" + entity + "/:" + entity;
-        service.get(path, function(req, res, next) {
 
+        service.get(Path.join("/", name, ":id"), function(req, res, next) {
+            Model[name].findById(req.params.id, function(err, doc) {
+                if (err)
+                    return next(err);
+                if (!doc)
+                    return res.send(404);
+
+                res.send(doc);
+            });
         });
-        service.put(path, function(req, res, next) {
+        service.put(Path.join("/", name, ":id"), function(req, res, next) {
+            Model[name].findById(req.params.id, function(err, doc) {
+                if (err)
+                    return next(err);
+                if (!doc)
+                    return res.send(404);
 
+                Hoek.merge(doc, req.body);
+                res.send(doc);
+            });
         });
-        service.del(path, function(req, res, next) {
+        service.del(Path.join("/", name, ":id"), function(req, res, next) {
+            Model[name].findByIdAndRemove(req.params.id, function(err, doc) {
+                if (err)
+                    return next(err);
+                if (!doc)
+                    return res.send(404);
 
+                res.send(204);
+            });
         });
     });
 };

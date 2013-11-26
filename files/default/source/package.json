@@ -3,12 +3,17 @@
   "version": "0.1.0",
   "description": "A universal AAA service for web and API services",
   "main": "index.js",
+  "dependencies" : {
+  	"hoek" : "1.2.x",
+  	"mongoose" : "3.8.x",
+  	"restify" : "2.6.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:jmanero/identity_service.git"
+    "url": "git@github.com:jmanero/crisis.git"
   },
   "keywords": [
     "AAA",
@@ -18,6 +23,6 @@
   "author": "John Manero <jmanero@dyn.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jmanero/identity_service/issues"
+    "url": "https://github.com/jmanero/crisis/issues"
   }
 }

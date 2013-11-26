@@ -23,5 +23,5 @@ platforms:
 
 suites:
 - name: default
-  run_list: ["recipe[identity_service]"]
+  run_list: ["recipe[crisis]"]
   attributes: {}

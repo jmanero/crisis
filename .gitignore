@@ -19,3 +19,5 @@ bin/*
 .project
 .settings
 .buildpath
+
+node_modules
