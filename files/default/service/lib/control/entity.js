@@ -3,20 +3,13 @@
  * 
  * Resource accessors for the internal model
  */
-var Hoek = require("hoek");
 var Path = require("path");
+var Model = require("../model");
 
-var Model = {
-    tenant : require("../model/tenant"),
-    permission : require("../model/permission"),
-    subject : require("../model/subject"),
-    key : require("../model/key")
-};
-
-exports.route = function(service) {
-    Object.keys(Model).forEach(function(name) {
+module.exports = function(service) {
+    Model.each(function(model, name) {
         service.post("/" + name, function(req, res, next) {
-            (new Model[name](req.body)).save(function(err) {
+            (new model(req.body)).save(function(err) {
                 if (err)
                     return next(err);
 
@@ -26,7 +19,7 @@ exports.route = function(service) {
         });
 
         service.get(Path.join("/", name, ":id"), function(req, res, next) {
-            Model[name].findById(req.params.id, function(err, doc) {
+            model.findById(req.params.id, function(err, doc) {
                 if (err)
                     return next(err);
                 if (!doc)
@@ -36,18 +29,23 @@ exports.route = function(service) {
             });
         });
         service.put(Path.join("/", name, ":id"), function(req, res, next) {
-            Model[name].findById(req.params.id, function(err, doc) {
+            model.findById(req.params.id, function(err, doc) {
                 if (err)
                     return next(err);
                 if (!doc)
                     return res.send(404);
 
-                Hoek.merge(doc, req.body);
-                res.send(doc);
+                doc.$merge(req.body);
+                doc.save(function(err) {
+                    if(err)
+                        return next(err);
+
+                    res.send(doc);
+                });
             });
         });
         service.del(Path.join("/", name, ":id"), function(req, res, next) {
-            Model[name].findByIdAndRemove(req.params.id, function(err, doc) {
+            model.findByIdAndRemove(req.params.id, function(err, doc) {
                 if (err)
                     return next(err);
                 if (!doc)

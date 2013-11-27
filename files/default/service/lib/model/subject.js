@@ -35,10 +35,6 @@ var Subject = new Schema({
     } ],
     policy : Types.Mixed,
     links : [ Link ],
-    keys : [ {
-        type : Types.ObjectId,
-        ref : "Key"
-    } ],
     _password : {
         hash : Buffer,
         salt : Buffer,
@@ -73,19 +69,30 @@ Subject.method("login", function(password) {
     return this._password.hash.toString("base64") == hasher.digest("base64");
 });
 
+// Build inherited permission list
+Subject.method("permissions", function(callback) {
+    if(typeof callback !== "function")
+        return;
+    
+    var found = {};
+    var permissions = [];
+    
+    this.inherits.each(function(parent) {
+        // Loop Busting
+        if(found[parent._id])
+            return;
+        found[parent._id] = true;
+        
+        
+    });
+});
+
 // Validators
 Subject.pre("validate", function(next) {
-    // No user/asset parameters for groups
-    if (this.type === "Group") {
-        this.keys = [];
+    // Only users can have passwords
+    if (this.type !== "User")
         delete this._password;
-    }
     
-    // Assets can't have passwords
-    if(this.TypeError === "Asset") {
-        delete this._password;
-    }
-
     next();
 });
 

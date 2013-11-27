@@ -11,7 +11,9 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--cpus", 4]
   end
 
-  config.vm.synced_folder "./files/default/source", "/srv/crisis"
+  config.vm.synced_folder "./files/default/service", "/srv/crisis-service"
+  config.vm.synced_folder "./files/default/ui", "/srv/crisis-ui"
+  config.vm.synced_folder "./files/default/tools", "/srv/crisis-tools"
 
   config.omnibus.chef_version = '11.6.2'
   config.berkshelf.enabled = true

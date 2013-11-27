@@ -7,6 +7,7 @@
 var Tenant = require("../lib/model/tenant");
 var Permission = require("../lib/model/permission");
 var Subject = require("../lib/model/subject");
+var Key = require("../lib/model/key");
 
 var Mongoose = require("mongoose");
 Mongoose.connect("localhost/crisis");
@@ -34,13 +35,19 @@ var webui = new Subject({
 docs.push(webui);
 
 // Default Users
-docs.push(new Subject({
+var default_admin = new Subject({
     name : process.argv[2],
     type : "User",
     tenant : tenant,
     password : process.argv[3],
     inherits : [ admin ]
-}));
+})
+docs.push(default_admin);
+var default_key = new Key({
+    subject : default_admin
+})
+docs.push(default_key);
+console.log("Key: " + default_key._id + ", Secret: " + default_key.secret);
 
 docs.push(new Subject({
     name : "web-ui",
@@ -56,11 +63,8 @@ docs.push(new Permission({
     resource : [ "*" ],
     actions : [ "*" ],
     effect : "Allow",
-    tenant : tenant,
-    applicant : {
-        tenant : tenant,
-        subject : admin
-    }
+    owner : tenant,
+    applicant : admin
 }));
 
 // The web UI can log users in
@@ -70,11 +74,8 @@ docs.push(new Permission({
     resource : [ "subject", "*", "login" ],
     actions : [ "PUT" ],
     effect : "Allow",
-    tenant : tenant,
-    applicant : {
-        tenant : tenant,
-        subject : webui
-    }
+    owner : tenant,
+    applicant : webui
 }));
 
 // The web UI can read and munge session data
@@ -84,16 +85,9 @@ docs.push(new Permission({
     resource : [ "session", "*", "data" ],
     actions : [ "GET", "PUT" ],
     effect : "Allow",
-    tenant : tenant,
-    applicant : {
-        tenant : tenant,
-        subject : webui
-    }
+    owner : tenant,
+    applicant : webui
 }));
-
-function services() {
-    
-}
 
 function looper(docs) {
     if (!docs.length) {
@@ -130,4 +124,4 @@ function looper(docs) {
         console.log("√ Done!");
         indexer(models);
     });
-})([ Tenant, Subject, Permission ]);
+})([ Tenant, Subject, Permission, Key ]);

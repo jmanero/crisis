@@ -3,6 +3,6 @@
  * 
  * Permission check end-points
  */
-exports.route = function(service) {
+module.exports = function(service) {
 
 };

@@ -21,32 +21,25 @@ var Permission = new Schema({
         enum : [ "Allow", "Deny" ],
         'default' : "Deny"
     },
-    tenant : {
+    owner : {
         type : Types.ObjectId,
         ref : "Tenant",
         required : true
     },
     applicant : {
-        tenant : {
-            type : Types.ObjectId,
-            ref : "Tenant",
-            required : true
-        },
-        subject : {
             type : Types.ObjectId,
             ref : "Subject",
             required : true
-        }
     }
 });
 
 // Cannonical Name
 Permission.virtual("name").get(function() {
-    var applicant = this.applicant.tenant.name || this.applicant.tenant;
-    applicant += "/" + (this.applicant.subject.name || this.applicant.subject);
+    var applicant = this.applicant.name || this.applicant;
+    var owner = this.owner.name || this.owner;
     
     var actions = "[" + this.actions.join(",") + "]";
-    var resource = this.platform + "::" + this.service + "::" + this.resource.join("/")
+    var resource = this.platform + "::" + this.service + "::" + owner + "::" + this.resource.join("/")
     
     return applicant + actions + "@" + resource + "::" + this.effect;
 });
