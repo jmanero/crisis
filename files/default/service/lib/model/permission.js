@@ -24,23 +24,25 @@ var Permission = new Schema({
     owner : {
         type : Types.ObjectId,
         ref : "Tenant",
-        required : true
+        required : true,
+        index : true
     },
     applicant : {
-            type : Types.ObjectId,
-            ref : "Subject",
-            required : true
+        type : Types.ObjectId,
+        ref : "Subject",
+        required : true,
+        index : true
     }
 });
 
-// Cannonical Name
+// Canonical Name
 Permission.virtual("name").get(function() {
     var applicant = this.applicant.name || this.applicant;
     var owner = this.owner.name || this.owner;
-    
+
     var actions = "[" + this.actions.join(",") + "]";
     var resource = this.platform + "::" + this.service + "::" + owner + "::" + this.resource.join("/")
-    
+
     return applicant + actions + "@" + resource + "::" + this.effect;
 });
 
@@ -48,6 +50,10 @@ Permission.virtual("name").get(function() {
 Permission.path("actions").validate(function(actions) {
     return !!actions.length;
 }, "Permission must specify at lease one action");
+Permission.path("resource").validate(function(resource) {
+    return !!resource.length;
+}, "Permission must specify a resource path or '*'");
+
 
 // Indices
 Permission.index({
@@ -56,8 +62,10 @@ Permission.index({
     resource : 1
 });
 Permission.index({
-    "applicant.tenant" : 1,
-    "applicant.subject" : 1
+    platform : 1,
+    service : 1,
+    resource : 1,
+    applicant : 1
 });
 
 Permission.set("autoIndex", false);

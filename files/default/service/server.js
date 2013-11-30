@@ -2,11 +2,13 @@
 /**
  * Identity Server
  */
-var Mongoose = require("mongoose");
 var Path = require("path");
 var RESTify = require("restify");
 
+var Control = require("./lib/control");
 var MW = require("./lib/mw");
+var Task = require("./lib/task");
+var Util = require("./lib/util");
 
 // REST API Service
 var service = RESTify.createServer({
@@ -14,13 +16,11 @@ var service = RESTify.createServer({
 });
 service.log.level("info");
 
-// MongoDB (PoC) Store
-Mongoose.connect("localhost/crisis");
-Mongoose.connection.on("connected", function() {
-    service.log.info("Connected to MongoDB localhost/crisis");
-});
+global.config = require("./config.default");
+global.config.$merge(require("./config"));
+global.log = service.log;
 
-// Request Handlers
+// Install Request Handlers
 service.use(RESTify.acceptParser(service.acceptable));
 service.use(RESTify.dateParser());
 service.use(RESTify.queryParser());
@@ -39,13 +39,23 @@ service.on('after', RESTify.auditLogger({
     log : service.log
 }));
 
-// Controllers
-require("./lib/control").each(function(controller, name) {
+// Install Controllers
+Control.each(function(controller, name) {
     service.log.info("Loaded controller " + name);
     controller(service);
 });
 
-// Start UI interface
-service.listen(9090, function() {
-    service.log.info("Listening for HTTP requests on port " + 9090);
+// Start Service Interface
+function serviceListen(next) {
+    service.listen(config.listen, function() {
+        service.log.info("Listening for HTTP requests on port " + config.listen);
+        next();
+    });
+}
+
+// Startup Sequence
+Util.train([ Task.dbConnect, Task.dbConfigure, serviceListen ], function(err) {
+    if (err)
+        return log.error(err);
+    log.info("Service Ready");
 });

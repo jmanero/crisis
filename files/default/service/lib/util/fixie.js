@@ -5,8 +5,36 @@
  */
 
 Object.defineProperties(Array.prototype, {
+    last : {
+        get : function() {
+            return this[this.length - 1];
+        },
+        enumerable : false
+    },
+    next : {
+        get : function() {
+            return this.shift();
+        },
+        enumerable : false
+    },
+    has : {
+        value : function(key) {
+            return this.indexOf(key) > -1;
+        },
+        writable : true,
+        enumerable : false
+    },
     each : {
-        value : Array.prototype.forEach,
+        value : function(iter) {
+            if (typeof iter !== "function")
+                return;
+
+            for (var i = 0; i < this.length; i++) {
+                if (iter(this[i], i))
+                    return true;
+            }
+        },
+        writable : true,
         enumerable : false
     },
     clone : {
@@ -17,20 +45,36 @@ Object.defineProperties(Array.prototype, {
                 return elm;
             });
         },
+        writable : true,
         enumerable : false
     }
 });
 
 Object.defineProperties(Object.prototype, {
+    count : {
+        value : function() {
+            return Object.keys(this).length;
+        },
+        writable : true,
+        enumerable : false
+    },
+    key : {
+        value : function(key) {
+            return (typeof this[key] !== "undefined");
+        },
+        writable : true,
+        enumerable : false
+    },
     each : {
         value : function(iter) {
             if (typeof iter !== "function")
-                return; // console.log(iter);
+                return;
 
             Object.keys(this).each((function(key) {
                 iter(this[key], key);
             }).bind(this));
         },
+        writable : true,
         enumerable : false
     },
     filter : {
@@ -46,6 +90,7 @@ Object.defineProperties(Object.prototype, {
 
             return result;
         },
+        writable : true,
         enumerable : false
     },
     map : {
@@ -60,6 +105,7 @@ Object.defineProperties(Object.prototype, {
 
             return result;
         },
+        writable : true,
         enumerable : false
     },
     clone : {
@@ -70,52 +116,57 @@ Object.defineProperties(Object.prototype, {
                 return value;
             });
         },
+        writable : true,
         enumerable : false
     },
     merge : {
-        value : function(mergein) {
-            mergein = mergein || {};
-            var result = this.clone();
+        value : function(from) {
+            from = from || {};
+            var to = this.clone();
 
-            mergein.each(function(value, key) {
-                if (!result[key]) // Nothing in target[key]. Merge away...
-                    return result[key] = (!!value && typeof value === "object") ? value.clone() : value;
+            from.each(function(value, key) {
+                // Knock-out
+                if (value === null)
+                    return delete to[key];
 
-                // Don't merge arrays
-                if (Array.isArray(result[key]))
-                    return;
-                if (Array.isArray(value) || !value)
-                    return;
+                // Array
+                if (Array.isArray(value))
+                    return to[key] = value;
 
-                // Both are objects. Recurse.
-                if (typeof result[key] === "object" && typeof value === "object")
-                    result[key].merge(value);
+                // Object
+                if (typeof to[key] === "object" && typeof value === "object")
+                    return to[key].merge(value);
+
+                // Scalar
+                to[key] = value;
             });
-
-            return result;
+            return to;
         },
+        writable : true,
         enumerable : false
     },
     $merge : {
-        value : function(mergein) {
-            mergein = mergein || {};
-            mergein.each((function(value, key) {
-                if (!this[key]) // Nothing in target[key]. Merge away...
-                    return this[key] = (!!value && typeof value === "object") ? value.clone() : value;
-                if (Array.isArray(this[key])) // target[key] is an array...
-                    // Don't
-                    // merge
-                    return;
-                if (Array.isArray(value) || !value)
-                    return;
+        value : function(from) {
+            from = from || {};
+            from.each((function(value, key) {
+                // Knock-out
+                if (value === null)
+                    return delete this[key];
 
-                // Both are objects. Recurse.
+                // Array
+                if (Array.isArray(value))
+                    return this[key] = value;
+
+                // Object
                 if (typeof this[key] === "object" && typeof value === "object")
-                    this[key].$merge(value);
-            }).bind(this));
+                    return this[key].merge(value);
 
+                // Scalar
+                this[key] = value;
+            }).bind(this));
             return this;
         },
+        writable : true,
         enumerable : false
     }
 });

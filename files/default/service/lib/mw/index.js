@@ -1,5 +1,5 @@
 /**
  * MiddleWare
  */
-var Util = require("../util");
-module.exports = Util.truck.load(__dirname);
+var Truck = require("../util").truck;
+module.exports = Truck.load(__dirname);

@@ -3,14 +3,10 @@
  */
 var Crypto = require("crypto");
 var RESTify = require("restify");
+
 var Key = require("../model/key");
-
-function sha1(data) {
-    var hasher = Crypto.createHash("sha1");
-    hasher.update(data);
-
-    return hasher.digest("base64");
-}
+// var Session = require("../model/session");
+var Subject = require("../model/subject");
 
 function byKey() {
     return (function(req, res, next) {
@@ -38,11 +34,11 @@ function byKey() {
             var hmac = Crypto.createHmac("sha256", key.secret);
             hmac.digest(cannonical);
             var check = hmac.digest("base64");
-            
-            if(check !== challenge)
+
+            if (check !== challenge)
                 return next(new RESTify.NotAuthorizedError("Invalid HMAC challenge"));
-            
-            req.user = key.user;
+
+            req.subject = key.subject;
             next();
         });
     });
@@ -50,7 +46,47 @@ function byKey() {
 
 function bySession() {
     return (function(req, res, next) {
-        res.send(501);
+        // No session store implemented yet
+        return res.send(501);
+
+        var cannonical = JSON.stringify({
+            date : req.headers["date"],
+            method : req.method,
+            uri : req.url,
+            body : req.digest
+        });
+
+        var id = req.headers["x-auth-session"];
+        if (!id)
+            return next(new RESTify.InvalidHeaderError("Missing X-Auth-Session"));
+
+        var challenge = req.headers["x-auth-hmac"];
+        if (!challenge)
+            return next(new RESTify.InvalidHeaderError("Missing X-Auth-Hmac"));
+
+        Session.get(id, function(err, session) {
+            if (err)
+                return next(err);
+            if (!session)
+                return next(new RESTify.NotAuthorizedError("Invalid session ID"));
+
+            var hmac = Crypto.createHmac("sha256", session.token);
+            hmac.digest(cannonical);
+            var check = hmac.digest("base64");
+
+            if (check !== challenge)
+                return next(new RESTify.NotAuthorizedError("Invalid HMAC challenge"));
+
+            Subject.findById(session.subject, function(err, subject) {
+                if (err)
+                    return next(err);
+                if (!subject)
+                    return next(new RESTify.NotAuthorizedError("Invalid subject ID associated with session"));
+
+                req.subject = subject;
+                next();
+            });
+        });
     });
 };
 
@@ -60,11 +96,8 @@ exports = module.exports = function() {
 
     return (function(req, res, next) {
         var method = req.headers["x-auth-method"];
-        console.log(method);
-
         if (method == "Key-v1.0")
             return key(req, res, next);
-
         if (method == "Session-v1.0")
             return session(req, res, next)
 
