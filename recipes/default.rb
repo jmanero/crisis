@@ -25,6 +25,8 @@ end
 
 ## Packages
 package "curl"
+package "htop"
 package "build-essential"
 package "nodejs"
 package "mongodb"
+package "memcached"

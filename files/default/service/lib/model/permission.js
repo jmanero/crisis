@@ -46,6 +46,14 @@ Permission.virtual("name").get(function() {
     return applicant + actions + "@" + resource + "::" + this.effect;
 });
 
+// Effect
+Permission.virtual("allow").get(function() {
+    return this.effect === "Allow";
+});
+Permission.virtual("deny").get(function() {
+    return this.effect === "Deny";
+});
+
 // Validators
 Permission.path("actions").validate(function(actions) {
     return !!actions.length;

@@ -4,10 +4,6 @@
  */
 var Path = require("path");
 var RESTify = require("restify");
-
-var Control = require("./lib/control");
-var MW = require("./lib/mw");
-var Task = require("./lib/task");
 var Util = require("./lib/util");
 
 // REST API Service
@@ -19,6 +15,10 @@ service.log.level("info");
 global.config = require("./config.default");
 global.config.$merge(require("./config"));
 global.log = service.log;
+
+var Control = require("./lib/control");
+var MW = require("./lib/mw");
+var Task = require("./lib/task");
 
 // Install Request Handlers
 service.use(RESTify.acceptParser(service.acceptable));
@@ -56,6 +56,6 @@ function serviceListen(next) {
 // Startup Sequence
 Util.train([ Task.dbConnect, Task.dbConfigure, serviceListen ], function(err) {
     if (err)
-        return log.error(err);
+        return console.log(err);
     log.info("Service Ready");
 });
