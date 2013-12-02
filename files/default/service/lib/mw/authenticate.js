@@ -25,7 +25,7 @@ function byKey() {
         if (!challenge)
             return next(new RESTify.InvalidHeaderError("Missing X-Auth-Hmac"));
 
-        Key.findById(key).populate("user").exec(function(err, key) {
+        Key.findById(key).populate("subject").exec(function(err, key) {
             if (err)
                 return next(err);
             if (!key)
@@ -38,8 +38,13 @@ function byKey() {
             if (check !== challenge)
                 return next(new RESTify.NotAuthorizedError("Invalid HMAC challenge"));
 
-            req.subject = key.subject;
-            next();
+            key.subject.populate("tenant", function(err, key) {
+                if (err)
+                    return next(err);
+
+                req.subject = key.subject;
+                next();
+            });
         });
     });
 };

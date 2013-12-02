@@ -33,6 +33,7 @@ Object.defineProperties(Array.prototype, {
                 if (iter(this[i], i))
                     return true;
             }
+            return false;
         },
         writable : true,
         enumerable : false

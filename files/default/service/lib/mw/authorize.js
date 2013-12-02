@@ -7,25 +7,23 @@ var Subject = require("../model/subject");
 exports = module.exports = function() {
     return (function(req, res, next) {
         Subject.permissions({
-            platform : "_default",
-            service : "identity",
-            action : req.method,
-            owner : foo
+            platform : config.platform,
+            service : config.service,
+            actions : req.method,
+            owner : config._tenant
         }, function(err, perms) {
             if (err)
                 return next(err);
+            
+            perms.parameters.$merge({
+                subject : req.subject,
+                tenant : req.subject.tenant
+            });
 
-            if (perms.can({
-                platform : "_default",
-                service : "identity",
+            next(perms.can({
                 resource : req.path.split("/"),
-                action : req.method,
-                owner : foo
-            })) {
-                return next();
-            }
-
-            next(new RESTify.NotAuthorizedError("Inadequate Permission"));
+                actions : req.method,
+            }) ? null : new RESTify.NotAuthorizedError("Inadequate Permission"));
         });
     });
 };
