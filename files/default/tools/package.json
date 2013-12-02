@@ -1,15 +1,9 @@
 {
-  "name": "crisis-service",
+  "name": "crisis-tools",
   "version": "0.1.0",
   "description": "A universal AAA service for web and API services",
-  "main": "server.js",
   "dependencies" : {
-    "assert-plus": "0.1.2",
-    "bunyan": "0.22.0",
-    "csv" : "0.3.6",
-	"memcached" : "0.2.x",
-    "mongoose" : "3.8.x",
-    "restify" : "2.6.x"
+    "optimist" : "0.6.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

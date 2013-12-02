@@ -5,7 +5,7 @@ var Crypto = require("crypto");
 var RESTify = require("restify");
 
 var Key = require("../model/key");
-// var Session = require("../model/session");
+var Session = require("../model/session");
 var Subject = require("../model/subject");
 
 function byKey() {

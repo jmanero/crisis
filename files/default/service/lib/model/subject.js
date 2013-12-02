@@ -50,9 +50,9 @@ var Subject = new Schema({
 Subject.virtual("password").set(function(password) {
     var salt = Crypto.randomBytes(64);
     var hasher = Crypto.createHash("sha256");
-
+    
     hasher.update(salt);
-    hasher.update(password);
+    hasher.update(password.toString());
 
     this._password = {
         salt : salt,

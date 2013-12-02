@@ -7,7 +7,7 @@ var Path = require("path");
 var Model = require("../model");
 
 module.exports = function(service) {
-    Model.each(function(model, name) {
+    Model.entities.each(function(model, name) {
         service.post("/" + name, function(req, res, next) {
             (new model(req.body)).save(function(err) {
                 if (err)
@@ -37,7 +37,7 @@ module.exports = function(service) {
 
                 doc.$merge(req.body);
                 doc.save(function(err) {
-                    if(err)
+                    if (err)
                         return next(err);
 
                     res.send(doc);
