@@ -12,7 +12,7 @@ var Task = require("./lib/task");
 // REST API Service
 var service = RESTify.createServer({
     name : "Crisis-Service",
-    log : log.child({
+    log : $log.child({
         process : "Service"
     })
 });
@@ -33,7 +33,9 @@ service.use(MW.authenticate());
 service.use(MW.authorize());
 
 service.on('after', RESTify.auditLogger({
-    log : service.log
+    log : $log.child({
+        process : "Requests"
+    })
 }));
 
 // Install Controllers
@@ -44,15 +46,15 @@ Control.each(function(controller, name) {
 
 // Start Service Interface
 function serviceListen(next) {
-    service.listen(config.listen, function() {
-        service.log.info("Listening for HTTP requests on port " + config.listen);
+    service.listen($config.listen, function() {
+        service.log.info("Listening for HTTP requests on port " + $config.listen);
         next();
     });
 }
 
 // Startup Sequence
-Util.train([ Task.dbConnect(), Task.dbConfigure(), serviceListen ], function(err) {
+Util.train([ Task.dbConnect(), Task.serviceConfigure(), Task.instanceConfigure(), serviceListen ], function(err) {
     if (err)
-        return console.log(err);
-    log.info("Service Ready");
+        return $log.error(err);
+    $log.info("Service Ready");
 });

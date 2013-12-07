@@ -8,15 +8,17 @@
  * MongoDBLand is a globally blocking process that can take a long time if your
  * database already contains many documents.
  */
-var Util = require("../crisis-service/lib/util");
-var Task = require("../crisis-service/lib/task");
+process.chdir("/srv/crisis");
+var Path = require("path");
 
-log.info("Ensure DB Indexes");
+var Util = require(Path.join(process.cwd(), "./lib/util"));
+var Task = require(Path.join(process.cwd(), "./lib/task"));
+
+$log.info("Ensure DB Indexes");
 Util.train([ Task.dbConnect(), Task.dbIndex() ], function(err) {
-    if(err)
-        log.error(err);
-    else
-        log.info("Complete!");
-    
+    if (err)
+        return $log.error(err);
+    $log.info("Complete!");
+
     process.exit();
 });

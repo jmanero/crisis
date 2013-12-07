@@ -1,7 +1,5 @@
 /**
  * MiddleWare
  */
-var Truck = require("../util").truck;
-var Model = module.exports = Truck.load(__dirname);
-
-Model.entities = [ "key", "permission", "subject", "tenant" ];
+var Model = module.exports = require("../util").truck.load(__dirname);
+Model.entities = [ "key", "permission", "grant", "subject", "tenant" ];

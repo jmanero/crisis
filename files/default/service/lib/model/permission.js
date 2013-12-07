@@ -7,12 +7,14 @@ var Types = Schema.Types;
 
 var Permission = new Schema({
     platform : {
-        type : String,
-        required : true
+        type : Types.ObjectId,
+        ref : "Tenant",
+        required : true,
     },
     service : {
-        type : String,
-        required : true
+        type : Types.ObjectId,
+        ref : "Subject",
+        required : true,
     },
     resource : [ String ],
     actions : [ String ],
@@ -33,17 +35,6 @@ var Permission = new Schema({
         required : true,
         index : true
     }
-});
-
-// Canonical Name
-Permission.virtual("name").get(function() {
-    var applicant = this.applicant.name || this.applicant;
-    var owner = this.owner.name || this.owner;
-
-    var actions = "[" + this.actions.join(",") + "]";
-    var resource = this.platform + "::" + this.service + "::" + owner + "::" + this.resource.join("/")
-
-    return applicant + actions + "@" + resource + "::" + this.effect;
 });
 
 // Effect

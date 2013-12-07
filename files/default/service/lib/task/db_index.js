@@ -14,7 +14,7 @@ module.exports = function() {
     return function(next) {
         Util.train(Model.entities.map(function(model) {
             return function(next) {
-                log.info("Indexing " + model);
+                $log.info("Indexing " + model);
                 Model[model].ensureIndexes(function(err) {
                     next(err);
                 });

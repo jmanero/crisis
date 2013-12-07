@@ -4,10 +4,10 @@
   "description": "A universal AAA service for web and API services",
   "main": "servcie",
   "dependencies" : {
-    "assert-plus": "0.1.2",
-    "csv" : "0.3.6",
-    "mongoose" : "3.8.x",
-    "restify" : "2.6.x"
+    "ejs" : "0.8.x",
+    "express" : "3.4.x",
+    "mime" : "1.2.x",
+    "request" : "2.28.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

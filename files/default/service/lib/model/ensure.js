@@ -1,10 +1,9 @@
 /**
- * Util: Ensure
+ * Model: Ensure
  * 
- * Make sure a document exists in the DB
+ * Make sure a document exists in the DB. Create if missing
  */
-var Truck = require("../util").truck;
-var Model = module.exports = Truck.load(__dirname);
+var Model = require("../util").truck.load(__dirname);
 
 module.exports = function ensure(model, desc, query, params, callback) {
     if (typeof params === "function") {
@@ -14,17 +13,16 @@ module.exports = function ensure(model, desc, query, params, callback) {
 
     Model[model].findOne(query, function(err, doc) {
         if (err)
-            callback(err);
+            return callback(err);
         if (doc) {
             return callback(null, doc);
         }
 
-        log.info("Creating new " + model + ": " + desc);
+        $log.info("Creating new " + model + ": " + desc);
         doc = new Model[model](params);
         doc.save(function(err) {
             if (err)
-                callback(err);
-
+                return callback(err);
             callback(null, doc);
         });
     });

@@ -1,82 +1,45 @@
 /**
  * Model: Session
  */
-var Memcached = require("memcached");
-var store = new Memcached(config.session);
+var Crypto = require("crypto");
+var Cache = require("./cache");
+var Util = require("../util");
+
 function nothing() {};
+function something(callback) {
+    return typeof callback === "function" ? callback : nothing;
+}
 
-var Session = module.exports = function(id) {
-    Object.defineProperty(this, "id", {
-        value : id,
-        configurable : false,
-        enumerable : false,
-        writable : false
-    });
+function key(client, id) {
+    return "Session::" + client + "::" + id;
+}
 
-    Object.defineProperty(this, "isNew", {
-        value : true,
-        enumerable : false,
-        writable : true
-    });
-
-    this.expires = +(this.expires) || 3600000;
-    this.data = this.data || {};
-};
-
-Session.get = function(id, options, callback) {
-    if(typeof options === "function") {
-        callback = options;
-        options = {};
+var Session = module.exports = function(client, id) {
+    this.id = id || Crypto.randomBytes(32).toString("hex");
+    this.owner = this.owner || client;
+    if (!(this instanceof Cache)) {
+        Cache.call(this, key(client, this.id));
     }
-    callback = typeof callback === "function" ? callback : nothing;
-    options = options || {};
-    
-    store.get(id, function(e, session) {
-        if (e)
-            return callback(e);
 
-        if (session) {
-            try { // Instantiate Session object
-                session = JSON.parse(session.toString("utf8"));
-                Session.call(session, id);
-                
-                session.isNew = false;
-                session.__proto__ = Session.prototype;
-                
-                if(options.expires)
-                    session.expires = options.expires;
+    this.children = this.children || [];
+    this.data = this.data || {};
+    this.permissions = this.permissions || [];
+    this.token = this.token || Crypto.randomBytes(96).toString("base64");
+    this.type = this.type || "preauth";
+};
 
-                return callback(null, session);
-            } catch (e) {
-                log.error(e);
-            }
-        }
+Session.get = function(client, id, callback) {
+    callback = something(callback);
+    Cache.get(key(client, id), function(err, cache) {
+        if (err)
+            return callback(err);
+        if (!cache)
+            return callback();
 
-        // Non-existent session or corrupted data
-        session = new Session(id);
-        if(options.expires)
-            session.expires = options.expires;
-        callback(null, session);
+        callback(null, Session.call(cache, client, id));
     });
 };
 
-Session.del = function(id, callback) {
-    store.del(id, (typeof callback === "function" ? callback : nothing));
-};
-
-Session.prototype.touch = function(expires, callback) {
-    if(typeof expires === "function")
-        callback = expires;
-    else if(+expires)
-        this.expires = expires;
-    
-    this.touched = Date.now();
-    store.touch(this.id, this.expires / 1000,
-        (typeof callback === "function" ? callback : nothing));
-};
-
-Session.prototype.save = function(callback) {
-    this.touched = Date.now();    
-    store.set(this.id, JSON.stringify(this), this.expires / 1000,
-        (typeof callback === "function" ? callback : nothing));
+Session.del = function(client, id, callback) {
+    Cache.del(key(client, id), callback);
 };

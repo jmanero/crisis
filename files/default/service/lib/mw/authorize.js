@@ -1,29 +1,24 @@
 /**
  * MiddleWare: Authorize
  */
+var Util = require("../util");
 var RESTify = require("restify");
 var Subject = require("../model/subject");
 
 exports = module.exports = function() {
     return (function(req, res, next) {
-        Subject.permissions({
-            platform : config.platform,
-            service : config.service,
+        req.subject.permissions({
+            platform : $config.platform,
+            service : $config.service,
             actions : req.method,
-            owner : config._tenant
+            owner : cluster.tenant
         }, function(err, perms) {
             if (err)
                 return next(err);
             
-            perms.parameters.$merge({
-                subject : req.subject,
-                tenant : req.subject.tenant
-            });
-
             next(perms.can({
-                resource : req.path.split("/"),
-                actions : req.method,
-            }) ? null : new RESTify.NotAuthorizedError("Inadequate Permission"));
+                resource : req.path.split("/")
+            }) ? null : new RESTify.NotAuthorizedError("Permission Denied"));
         });
     });
 };

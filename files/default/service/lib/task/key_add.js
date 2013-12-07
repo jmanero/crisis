@@ -3,25 +3,24 @@
  */
 var Model = require("../model");
 
-module.exports = function(key) {
-    return function(next, _key) {
-        key = key.merge(_key || {});
-        
-        Model.subject.findOne({
-            name : key.user
-        }, function(err, user) {
+module.exports = function(subject, callback) {
+    function task(next, _subject) {
+        _subject = _subject || subject;
+        Model.exists("subject", _subject, function(err, subject) {
             if (err)
                 return next(err);
-            if (!user)
-                return next(new ReferenceError("User " + key.user + " does not exist!"));
 
-            var k = Model.key({
-                subject : user
+            var key = new Model.key({
+                subject : subject
             });
 
-            k.save(function(err) {
-                next(err, k);
+            key.save(function(err) {
+                next(err, key);
             });
         });
-    };
+    }
+    
+    if (typeof callback === "function")
+        task(callback);
+    return task;
 };

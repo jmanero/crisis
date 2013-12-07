@@ -1,21 +1,8 @@
 /**
  * Task: UserAdd
  */
-var Model = require("../model");
-
-module.exports = function(user) {
-    return function(next, _user) {
-        user = user.merge(_user || {});
-
-        Model.ensure("subject", "User " + user.name, {
-            name : user.name,
-            tenant : cluster.tenant
-        }, {
-            name : user.name,
-            password : user.password,
-            tenant : cluster.tenant,
-            type : "User",
-            inherits : user.inherits
-        }, next);
-    };
+var subjectAdd = require("./subject_add");
+module.exports = function(user, callback) {
+    user.type = "User";
+    return subjectAdd(user, callback);
 };
